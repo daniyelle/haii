@@ -1,34 +1,40 @@
-local Players = game:GetService("Players")
+-- animation test (anti-cheat)
 local UserInputService = game:GetService("UserInputService")
 
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
 
--- get animator (best practice)
-local animator = humanoid:FindFirstChildOfClass("Animator")
-if not animator then
-    animator = Instance.new("Animator")
-    animator.Parent = humanoid
+local Animator = Humanoid:FindFirstChildOfClass("Animator")
+if not Animator then
+	Animator = Instance.new("Animator")
+	Animator.Parent = Humanoid
 end
 
--- load animation ONCE
-local animation = Instance.new("Animation")
-animation.AnimationId = "rbxassetid://8687587407"
+local TestAnimation = Instance.new("Animation")
+TestAnimation.AnimationId = "rbxassetid://8687587407"
 
-local track = animator:LoadAnimation(animation)
-track.Looped = false
+local TestTrack = Animator:LoadAnimation(TestAnimation)
+TestTrack.Looped = false
+TestTrack.Priority = Enum.AnimationPriority.Action
 
--- keybind
-local KEY = Enum.KeyCode.E
+local TEST_KEY = Enum.KeyCode.E
+local lastPlay = 0
+local COOLDOWN = 0.5 -- helps test spam detection
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == KEY then
-        if track.IsPlaying then
-            track:Stop()
-        else
-            track:Play()
-        end
-    end
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode ~= TEST_KEY then return end
+
+	-- debounce / cooldown
+	if os.clock() - lastPlay < COOLDOWN then
+		return
+	end
+	lastPlay = os.clock()
+
+	if TestTrack.IsPlaying then
+		TestTrack:Stop()
+	else
+		TestTrack:Play()
+	end
 end)
